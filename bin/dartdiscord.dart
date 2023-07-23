@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:dartdiscord/models/user.dart';
 import 'package:dartdiscord/models/check.dart';
+import 'package:dartdiscord/models/server.dart';
 
 void main(List<String> arguments) async{
   bool running = true;
@@ -61,6 +62,27 @@ void main(List<String> arguments) async{
       String? response = stdin.readLineSync();
       if(response == 'y' || response == 'Y'){
         running = false;
+      }
+    }
+
+    else if(arguments == 'server'){
+      bool runningServer = true;
+      if(checkValidity.checkLogin(currentUser) == true){
+        while(runningServer){
+          stdout.write("server >> ");
+          String? newargument = stdin.readLineSync();
+
+          if(newargument == 'create'){
+            await Server.createServer(currentUser);
+          }
+
+          else if(newargument == 'exit'){
+            runningServer = false;
+          }
+        }
+      }
+      else{
+        print("Please login to user Server functionality");
       }
     }
   }
