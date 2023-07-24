@@ -12,7 +12,7 @@ class databaseOp{
   Future<void> openDb() async{
     final DatabaseFactory dbFactory = databaseFactoryIo;
     currDb = await dbFactory.openDatabase(path);
-    print(currDb);
+    // print(currDb);
     // print(path);
   }
 
