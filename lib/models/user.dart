@@ -14,6 +14,23 @@ class User{
     this.passwordHash = _hashPassword(password);
   }
 
+  String toJson(){
+    String jsonString = jsonEncode(toMap());
+    return jsonString;
+  }
+
+  Map<String, String> toMap(){
+    return {
+      'username': username!,
+      'passwordHash': passwordHash!,
+    };
+  }
+
+  Map<String, String> fromJson(String? jsonString){
+    Map<String, String> map = jsonDecode(jsonString!);
+    return map;
+  }
+
   //function for Register User
   static Future<void> registerUser() async{
     stdout.write("Please enter a username : ");

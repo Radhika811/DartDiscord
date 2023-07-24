@@ -29,7 +29,7 @@ class Server{
     }
 
     // print("reached here");
-    List<String>? currUser = [creator!];
+    List<dynamic>? currUser = [creator!];
     Server newServer = Server(serverName, creator, currUser, currUser);
     String serverJson = jsonEncode(newServer.toMap());
     await serverDb.insertDb(serverName, serverJson);
@@ -38,8 +38,8 @@ class Server{
 
   Map<String,dynamic> toMap(){
     return {
-      'name': serverName,
-      'creator': creator,
+      'name': serverName!,
+      'creator': creator!,
       'users': serverUsers,
       'moduser' : modUsers,
     };
@@ -50,9 +50,10 @@ class Server{
     return JsonString;
   }
 
-  static Server fromJsonString(String jsonString) {
+  static Map<String, dynamic> fromJsonString(String jsonString){
     Map<String, dynamic> map = jsonDecode(jsonString);
-    return Server.fromMap(map);
+    // return Server.fromMap(map);
+    return map;
   }
 
   static Server fromMap(Map<String, dynamic> map) {
@@ -78,22 +79,23 @@ class Server{
       return;
     }
     else{
-      Server currServer = fromJsonString(oldJson!);
-      List<dynamic> addingMod = currServer.modUsers!;
-      List<dynamic> addingUser = currServer.serverUsers!;
+      Map<String, dynamic> currServer = fromJsonString(oldJson!);
+      // print(currServer);
+      List<dynamic>? addingMod = currServer['users'];
+      List<dynamic>? addingUser = currServer['moduser'];
 
-      for(String user in addingUser){
+      for(String user in addingUser!){
         if(user == currentUser.username){
           print("You are already present in the server!!");
           return;
         }
       }
-      addingMod.add(currentUser.username!);
-      addingUser.add(currentUser.username!);
-      currServer.modUsers = addingMod;
-      currServer.serverUsers = addingUser;
+      addingMod!.add(currentUser.username);
+      addingUser.add(currentUser.username);
+      currServer['users'] = addingMod;
+      currServer['modusers'] = addingUser;
 
-      String? newJson = toJsonString(currServer);
+      String? newJson = jsonEncode(currServer);
       await serverDb.deleteDb(serverName);
       await serverDb.insertDb(serverName, newJson);
       print("Congratulations!! You are successfully added to server $serverName");
