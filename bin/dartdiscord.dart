@@ -73,17 +73,29 @@ void main(List<String> arguments) async{
           String? newargument = stdin.readLineSync();
 
           if(newargument == 'create'){
-            await Server.createServer(currentUser);
+            await Server.createServer(currentUser.username);
           }
 
           else if(newargument == 'exit'){
             runningServer = false;
+          }
+
+          else if(newargument == 'join'){
+            await Server.joinServer(currentUser);
+          }
+
+          else{
+            print("Please enter a valid command!!");
           }
         }
       }
       else{
         print("Please login to user Server functionality");
       }
+    }
+
+    else{
+      print("Please enter a valid command!!");
     }
   }
 }

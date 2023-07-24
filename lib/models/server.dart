@@ -5,14 +5,13 @@ import 'dart:io';
 
 class Server{
   String? serverName;
-  User? creator;
-  List<User>? serverUsers;
+  String? creator;
+  List<dynamic>? serverUsers;
+  List<dynamic>? modUsers;
   
-  Server(this.serverName, this.creator){
-    serverUsers = [creator!];
-  }
+  Server(this.serverName, this.creator, this.serverUsers, this.modUsers);
 
-  static Future<void> createServer(User? creator) async{
+  static Future<void> createServer(String? creator) async{
 
     stdout.write("Enter Server Name : ");
     String? serverName = stdin.readLineSync();
@@ -30,16 +29,74 @@ class Server{
     }
 
     // print("reached here");
-    Server newServer = Server(serverName, creator);
-    String serverJson = jsonEncode(newServer);
+    List<String>? currUser = [creator!];
+    Server newServer = Server(serverName, creator, currUser, currUser);
+    String serverJson = jsonEncode(newServer.toMap());
     await serverDb.insertDb(serverName, serverJson);
     print("Server created successfully!!");
   }
 
-  Map<String,dynamic> toJson(){
+  Map<String,dynamic> toMap(){
     return {
       'name': serverName,
-      'users': [creator!.username],
+      'creator': creator,
+      'users': serverUsers,
+      'moduser' : modUsers,
     };
+  }
+
+  static String toJsonString(Server obj){
+    String? JsonString = jsonEncode(obj.toMap());
+    return JsonString;
+  }
+
+  static Server fromJsonString(String jsonString) {
+    Map<String, dynamic> map = jsonDecode(jsonString);
+    return Server.fromMap(map);
+  }
+
+  static Server fromMap(Map<String, dynamic> map) {
+    return Server(
+      map['name'] as String,
+      map['creator'] as String,
+      map['users'] as List<dynamic>,
+      map['moduser'] as List<dynamic>,
+    );
+  }
+
+  static Future<void> joinServer(User currentUser) async{
+
+    stdout.write("Enter the server name you want to join : ");
+    String? serverName = stdin.readLineSync();
+    var pathServ = 'lib/database/server.db';
+    databaseOp serverDb = databaseOp(pathServ);
+    await serverDb.openDb();
+    List<dynamic>? records = await serverDb.storeDb(true);
+    String? oldJson = await serverDb.findDb(serverName);
+    if(oldJson == ''){
+      print("OOPS!! A server with server name $serverName does not exist!!");
+      return;
+    }
+    else{
+      Server currServer = fromJsonString(oldJson!);
+      List<dynamic> addingMod = currServer.modUsers!;
+      List<dynamic> addingUser = currServer.serverUsers!;
+
+      for(String user in addingUser){
+        if(user == currentUser.username){
+          print("You are already present in the server!!");
+          return;
+        }
+      }
+      addingMod.add(currentUser.username!);
+      addingUser.add(currentUser.username!);
+      currServer.modUsers = addingMod;
+      currServer.serverUsers = addingUser;
+
+      String? newJson = toJsonString(currServer);
+      await serverDb.deleteDb(serverName);
+      await serverDb.insertDb(serverName, newJson);
+      print("Congratulations!! You are successfully added to server $serverName");
+    }
   }
 }

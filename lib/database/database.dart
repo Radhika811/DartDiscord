@@ -12,6 +12,7 @@ class databaseOp{
   Future<void> openDb() async{
     final DatabaseFactory dbFactory = databaseFactoryIo;
     currDb = await dbFactory.openDatabase(path);
+    print(currDb);
     // print(path);
   }
 
@@ -26,5 +27,16 @@ class databaseOp{
   Future<void> insertDb(dynamic key, dynamic value) async {
     await store!.record(key).put(currDb!, value);
     await currDb!.close();
+  }
+
+  Future<String?> findDb(String? key) async {
+    var jsonString = await store!.record(key!).get(currDb!);
+    jsonString??='';
+    return jsonString;
+  }
+
+  Future<void> deleteDb(key) async {
+    final finder = Finder(filter: Filter.byKey(key));
+    await store!.delete(currDb!, finder: finder);
   }
 }
