@@ -38,7 +38,7 @@ class User{
     var path = 'lib/database/sample.db';
     databaseOp userDb = databaseOp(path);
     await userDb.openDb();
-    var records = await userDb.storeDb(true);
+    List<dynamic>? records = await userDb.storeDb(true);
     for (var rec in records!) {
       if (rec.key == username) {
         print("Username already exists. Please choose a different username.");

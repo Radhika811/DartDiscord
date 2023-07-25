@@ -39,4 +39,8 @@ class databaseOp{
     final finder = Finder(filter: Filter.byKey(key));
     await store!.delete(currDb!, finder: finder);
   }
+
+  Future<void> closeDb() async {
+    await currDb!.close();
+  }
 }

@@ -1,4 +1,0 @@
-{"version":1,"sembast":1}
-{"key":"a","value":"{\"name\":\"a\",\"creator\":\"a\",\"users\":[\"a\"],\"moduser\":[\"a\"]}"}
-{"key":"a","deleted":true}
-{"key":"a","value":"{\"name\":\"a\",\"creator\":\"a\",\"users\":[\"a\",\"b\"],\"moduser\":[\"a\",\"b\"],\"modusers\":[\"a\",\"b\"]}"}

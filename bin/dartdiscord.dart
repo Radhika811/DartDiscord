@@ -73,15 +73,37 @@ void main(List<String> arguments) async{
           String? newargument = stdin.readLineSync();
 
           if(newargument == 'create'){
-            await Server.createServer(currentUser.username);
+            await Server.createServer(currentUser.username!);
           }
 
           else if(newargument == 'exit'){
             runningServer = false;
           }
 
-          else if(newargument == 'join'){
-            await Server.joinServer(currentUser);
+          else if(newargument == 'enter'){
+            stdout.write("Print the server you want to enter : ");
+            String? serverName = stdin.readLineSync();
+            if(await checkValidity.checkServer(serverName!)){
+            bool entry = await Server.enterServer(serverName!, currentUser);
+            Server currServer = Server.fromDb(serverName);
+            currServer = await currServer.getServerObj(serverName);
+            int? currPerm = currServer.users![currentUser.username!];
+
+            while(entry){
+              stdout.write("$serverName >> ");
+              String? command = stdin.readLineSync();
+              if(command == 'addUser'){
+                // print(currPerm!);
+                await Server.addUser(currentUser.username!, currServer.serverName!, currPerm!);
+              }
+              else if(command == 'exit'){
+                entry = false;
+              }
+            }
+            }
+            else{
+              print("a server with server name $serverName does not exist");
+            }
           }
 
           else{

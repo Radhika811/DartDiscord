@@ -1,18 +1,23 @@
 class Permissions{
-  int view = 1<<0;
-  int message = 1<<1;
-  int deleteMsg = 1<<2;
-  int addUser = 1<<3;
-  int createRole = 1<<4;
-  int removeUser = 1<<5;
-  int editChannel = 1<<6;
-  int editCategory = 1<<7;
-  int deleteServer = 1<<8;
+  int? addUser;
+  int? createRole;
+  int? removeUser;
+  int? editChannel;
+  int? editCategory;
+  int? deleteServer;
+  int? all;
+
+  Permissions(){
+    addUser = 1<<0;
+    // print(addUser);
+    removeUser = 1<<1;
+    createRole = 1<<2;
+    editChannel = 1<<3;
+    editCategory = 1<<4;
+    deleteServer = 1<<5;
+    all = (1<<6) - 1;
+  }
 }
 
-class Roles{
-  int mizunoto = 1;
-  int kinoe = 3;
-  int hashira = 7;
-}
+
   
