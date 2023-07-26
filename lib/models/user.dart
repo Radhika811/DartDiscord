@@ -35,7 +35,7 @@ class User{
   static Future<void> registerUser() async{
     stdout.write("Please enter a username : ");
     String? username = stdin.readLineSync();
-    var path = 'lib/database/sample.db';
+    var path = 'lib/database/users.db';
     databaseOp userDb = databaseOp(path);
     await userDb.openDb();
     List<dynamic>? records = await userDb.storeDb(true);
@@ -63,7 +63,7 @@ class User{
   //function for login user
   Future<bool> loginUser() async {
       
-    var path = 'lib/database/sample.db';
+    var path = 'lib/database/users.db';
     databaseOp userDb = databaseOp(path);
 
     await userDb.openDb();

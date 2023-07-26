@@ -1,42 +1,56 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:dartdiscord/constants/permission.dart';
 import 'package:dartdiscord/database/database.dart';
 import 'package:dartdiscord/models/category.dart';
 import 'package:dartdiscord/models/Messages.dart';
 import 'package:dartdiscord/models/server.dart';
 
 class Channel{
+  String? channelName;
   String? serverName;
   String? categoryName;
-  int? permission;
+  int? type;
   List<String>? messages;
 
-  Channel(this.categoryName, this.serverName, this.permission, String serverCreator){
-    Message newMsg = Message(serverCreator, "Auto generated message");
+  Channel(this.channelName, this.categoryName, this.serverName, this.type, String? channelCreator){
+    Message newMsg = Message(channelCreator, "I have created this channel");
     String jsonMsg = newMsg.msgToJson();
     messages = [jsonMsg];
   }
 
-  void createChannel(String categoryName, String serverName, int permission, String serverCreator, String channelCreator) async {
+  Map<String, dynamic> toMap(){
+    return{
+      'channelName' : channelName,
+      'serverName' : serverName,
+      'categoryName' : categoryName,
+      'type' : type,
+      'messages' : jsonEncode(messages),
+    };
+  }
 
-    var path = 'lib/database/server.db';
-    databaseOp serverDb = databaseOp(path);
-    await serverDb.openDb();
-    List<dynamic>? records = await serverDb.storeDb(false);
-    String? record = await serverDb.findDb(serverName);
-    Map<String,dynamic> currServer = Server.fromJsonString(record!);
-    List<dynamic> modUser = currServer['moduser'];
-    bool access = false;
+  static Future<void> createChannel(String categoryName, Server server, int type, String channelCreator) async {
 
-    for(String user in modUser){
-      if(user == channelCreator){
-        access = true;
-      }
-    }
-
-    if(access == false){
-      print("Sorry, you do not have the rights to create a channel in this server");
+    Permissions p = Permissions();
+    if(server.users![channelCreator] & p.editChannel == 0){
+      print("you do not have the right to add a channel, take help from a kinoe or hashira!!");
       return;
     }
+    stdout.write("Please enter the name of the channel");
+    String? channelName = stdin.readLineSync();
 
+    Channel newChannel = Channel(channelName, categoryName, server.serverName, type, channelCreator);
+    String serverName = server.serverName!;
+
+    var path = 'lib/database/$serverName.db';
+    databaseOp channelDb = databaseOp(path);
+
+    String jsonKey = jsonEncode([categoryName, channelName]);
+
+    await channelDb.openDb();
+    List<dynamic>? records = await channelDb.storeDb(true);
+    await channelDb.insertDb(jsonKey, jsonEncode(newChannel.toMap()));
     
   }
 

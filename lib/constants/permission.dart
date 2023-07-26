@@ -1,21 +1,30 @@
 class Permissions{
+  int? mizunoto;
+  int? kinoe;
+  int? hashira;
   int? addUser;
-  int? createRole;
+  int? editpermission;
   int? removeUser;
+  int? createRole;
   int? editChannel;
   int? editCategory;
   int? deleteServer;
   int? all;
 
   Permissions(){
-    addUser = 1<<0;
+    mizunoto = 1<<0;
+    kinoe = 1<<1;
+    hashira = 1<<2;
+
+    addUser = 1<<3;
+    editpermission = 1<<4;
     // print(addUser);
-    removeUser = 1<<1;
-    createRole = 1<<2;
-    editChannel = 1<<3;
-    editCategory = 1<<4;
-    deleteServer = 1<<5;
-    all = (1<<6) - 1;
+    removeUser = 1<<5;
+    createRole = 1<<6;
+    editChannel = 1<<7;
+    editCategory = 1<<8;
+    deleteServer = 1<<9;
+    all = (1<<11) - 1;
   }
 }
 

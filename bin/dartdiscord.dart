@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:dartdiscord/models/category.dart';
+import 'package:dartdiscord/models/channel.dart';
 import 'package:dartdiscord/models/user.dart';
 import 'package:dartdiscord/models/check.dart';
 import 'package:dartdiscord/models/server.dart';
@@ -92,14 +94,41 @@ void main(List<String> arguments) async{
             while(entry){
               stdout.write("$serverName >> ");
               String? command = stdin.readLineSync();
+
+              //adding user to the server
               if(command == 'addUser'){
                 // print(currPerm!);
                 await Server.addUser(currentUser.username!, currServer.serverName!, currPerm!);
               }
+
+              //print categories in a server with a delay of 2 sec
+              else if(command == 'print categories'){
+                await Server.printCategories(currentUser.username!, currServer, currPerm!);
+              }
+
+              //exit server
               else if(command == 'exit'){
                 entry = false;
               }
-            }
+
+              // else if(command == 'enter categoroy'){
+              //   stdout.write("Please provide the name of the categoroy you want to enter");
+              //   bool inCategory = true;
+              //   String? categoryName = stdin.readLineSync();
+              //   if(currServer.categories![categoryName] == null){
+              //     inCategory = false;
+              //   } 
+              //   else{
+              //     Category currCategory = Category(categoryName, currServer.categories![categoryName], serverName);
+              //     while(inCategory){
+              //       stdout.write('$serverName >> $categoryName >> ');
+              //       String? command = stdin.readLineSync();
+              //       if(command == 'create channel'){
+              //         await Channel.createChannel(categoryName!, currServer, currCategory.type!, currentUser.username!);
+              //       }
+              //     }
+              //   }  
+              }
             }
             else{
               print("a server with server name $serverName does not exist");

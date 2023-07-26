@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:ffi';
 
 import 'package:dartdiscord/models/user.dart';
 import 'package:dartdiscord/database/database.dart';
@@ -39,7 +38,7 @@ class checkValidity{
   }
 
   static Future<bool> checkRegistration(String userName) async{
-    var path = 'lib/database/sample.db';
+    var path = 'lib/database/users.db';
     databaseOp userDb = databaseOp(path);
     await userDb.openDb();
     List<dynamic>? records = await userDb.storeDb(false);

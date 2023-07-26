@@ -19,9 +19,11 @@ class Server{
     };
     // print(p.all);
     categories = {
-      'Admin' : r.mizunoto!,
+      'Admin' : r.hashira!,
       'People' : r.kinoe!,
-      'Discuss' : r.hashira!,
+      'Discuss' : r.mizunoto!,
+      'Private' : r.kibutsuji!,
+      'null' : r.mizunoto!,
     };
   }
 
@@ -35,7 +37,7 @@ class Server{
     String? record = await serverDb.findDb(serverName);
     await serverDb.closeDb();
     Server obj = Server.fromDb(serverName);
-    print(jsonDecode(record!)['users']);
+    // print(jsonDecode(record!)['users']);
     String jsonUser = jsonDecode(record!)['users'];
     try{
       obj.users = jsonDecode(jsonUser);
@@ -69,6 +71,24 @@ class Server{
     Server newServer = Server(serverName, creator);
     String serverJson = jsonEncode(newServer.toMap());
     await serverDb.insertDb(serverName, serverJson);
+
+    List<String> channels = ['default'];
+    Map<String,dynamic> catChannelMap= {
+      'Admin' : channels,
+      'People' : channels,
+      'Discuss' : channels,
+      'Private' : channels,
+      'null' : channels,
+    };
+    String channelList = jsonEncode(catChannelMap);
+
+    var pathCat = 'lib/database/categories.db';
+    databaseOp categoryDb = databaseOp(pathCat);
+    await categoryDb.openDb();
+    List<dynamic>? categoryRec = await categoryDb.storeDb
+    (true);
+    await categoryDb.insertDb(serverName, channelList);
+
     print("Server created successfully!!");
   }
 
@@ -90,14 +110,6 @@ class Server{
     // return Server.fromMap(map);
     return map;
   }
-
-  // static Server fromMap(Map<String, dynamic> map) {
-  //   return Server(
-  //     map['name'] as String,
-  //     map['users'] as String,
-  //     map['categories'] as String,
-  //   );
-  // }
 
   static Future<void> addUser(String currentUser, String currentServer, int currPerm) async{
     Permissions p = Permissions();
@@ -157,7 +169,7 @@ class Server{
           case 'kinoe' :
             users[userName!] = r.kinoeServer!;
             break;
-          case 'minzunoto' : 
+          case 'mizunoto' : 
             users[userName!] = r.mizunotoServer!;
             break;
         } 
@@ -179,4 +191,35 @@ class Server{
     }
     return false;
   }
+
+  static Future<void> printCategories(String username, Server server, int permission) async {
+    Roles r = Roles();
+    Map<String,dynamic>? categories = server.categories;
+    // print(permission);
+    // print(r.kibutsuji);
+
+    if(permission & r.kibutsuji! != 0){
+      for(var entry in categories!.entries){
+        if(entry.key != 'null'){
+          await Future.delayed(Duration(seconds : 2), () async{
+            print(entry.key);
+          });
+        }
+        
+      }
+    }
+
+    else{
+      for(var entry in categories!.entries){
+        if(entry.value != r.kibutsuji){
+          if(entry.key != 'null'){
+            await Future.delayed(Duration(seconds : 2), () async{
+              print(entry.key);
+            });
+          }
+        }
+      }
+    }
+  }
+
 }
