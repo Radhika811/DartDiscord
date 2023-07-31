@@ -1,12 +1,13 @@
 import 'package:dartdiscord/models/user.dart';
 import 'dart:convert';
+import 'dart:io';
 
 class Message{
   String? sender;
   String? message;
   String? timeStamp;
 
-  Message(this.sender, this.message){
+  Message.channel(this.sender, this.message){
     timeStamp = DateTime.now.toString();
   }
 
@@ -21,5 +22,13 @@ class Message{
       'message' : message!,
       'timeStamp' : timeStamp!,
     };
+  }
+
+  static String newMessageinChannel(String userName){
+    stdout.write("Enter the message : ");
+    String? message = stdin.readLineSync();
+    Message newMessage = Message.channel(userName, message);
+    String messageJson = newMessage.msgToJson();
+    return messageJson;
   }
 }

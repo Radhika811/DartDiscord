@@ -4,29 +4,34 @@ import 'package:dartdiscord/models/channel.dart';
 import 'package:dartdiscord/models/user.dart';
 import 'package:dartdiscord/models/check.dart';
 import 'package:dartdiscord/models/server.dart';
+import 'package:dartdiscord/models/dmMessage.dart';
 
 void main(List<String> arguments) async{
+  // stdout.write("here");
   bool running = true;
-  User currentUser = User('','');
+  User currentUser = User.register('','');
   while(running){
     stdout.write(">> ");
     var arguments = stdin.readLineSync();
-  
+    bool loggedIn = checkValidity.checkLogin(currentUser.username!);
     if(arguments == 'register'){
       await User.registerUser();
     }
 
     else if(arguments == 'login'){
-      bool check = checkValidity.checkLogin(currentUser);
+      bool check = checkValidity.checkLogin(currentUser.username!);
       if(!check){
         stdout.write("Enter username : ");
         String? username = stdin.readLineSync();
         stdout.write("Enter password : ");
         String? password = stdin.readLineSync();
-        currentUser = User(username, password!);
-        bool correct = await currentUser.loginUser();
-        if(!correct){
-          currentUser = User('', '');
+        // currentUser = User(username, password!);
+        bool correct = await User.loginUser(username!, password!);
+        if(correct){
+          currentUser = await currentUser.getUserObj(username, password);
+        }
+        else if(!correct){
+          currentUser = User.register('', '');
         }
       }
       else{
@@ -35,12 +40,12 @@ void main(List<String> arguments) async{
     }
 
     else if(arguments == 'logout'){
-      bool check = checkValidity.checkLogin(currentUser);
+      bool check = checkValidity.checkLogin(currentUser.username!);
       if(!check){
         print("No user logged in!!");
       }
       else{
-        currentUser = User('', '');
+        currentUser = User.register('', '');
         print("logout successful");
         stdout.write("would you like to quit as well? [y/n] ");
         String? response = stdin.readLineSync();
@@ -51,7 +56,7 @@ void main(List<String> arguments) async{
     }
 
     else if(arguments == 'user'){
-      if(!checkValidity.checkLogin(currentUser)){
+      if(!checkValidity.checkLogin(currentUser.username!)){
         print("No user logged in!!");
       }
       else {
@@ -69,7 +74,7 @@ void main(List<String> arguments) async{
 
     else if(arguments == 'server'){
       bool runningServer = true;
-      if(checkValidity.checkLogin(currentUser) == true){
+      if(checkValidity.checkLogin(currentUser.username!) == true){
         while(runningServer){
           stdout.write("server >> ");
           String? newargument = stdin.readLineSync();
@@ -86,7 +91,7 @@ void main(List<String> arguments) async{
             stdout.write("Print the server you want to enter : ");
             String? serverName = stdin.readLineSync();
             if(await checkValidity.checkServer(serverName!)){
-            bool entry = await Server.enterServer(serverName!, currentUser);
+            bool entry = await Server.enterServer(serverName, currentUser.username!);
             Server currServer = Server.fromDb(serverName);
             currServer = await currServer.getServerObj(serverName);
             int? currPerm = currServer.users![currentUser.username!];
@@ -111,27 +116,69 @@ void main(List<String> arguments) async{
                 entry = false;
               }
 
-              // else if(command == 'enter categoroy'){
-              //   stdout.write("Please provide the name of the categoroy you want to enter");
-              //   bool inCategory = true;
-              //   String? categoryName = stdin.readLineSync();
-              //   if(currServer.categories![categoryName] == null){
-              //     inCategory = false;
-              //   } 
-              //   else{
-              //     Category currCategory = Category(categoryName, currServer.categories![categoryName], serverName);
-              //     while(inCategory){
-              //       stdout.write('$serverName >> $categoryName >> ');
-              //       String? command = stdin.readLineSync();
-              //       if(command == 'create channel'){
-              //         await Channel.createChannel(categoryName!, currServer, currCategory.type!, currentUser.username!);
-              //       }
-              //     }
-              //   }  
+              else if(command == 'enter category'){
+                stdout.write("Please provide the name of the category you want to enter : ");
+                bool inCategory = true;
+                String? categoryName = stdin.readLineSync();
+                if(currServer.categories![categoryName] == null){
+                  // print(currServer.categories);
+                  inCategory = false;
+                  print("such a category does not exist");
+                } 
+                else{
+                  if(currServer.categories![categoryName] & currServer.users![currentUser.username] == 0){
+                    print("You are not allowed to access this category!!");
+                    return;
+                  }
+                  Category currCategory = await Category.getCategoryObj(categoryName!, serverName);
+                  // print(currCategory.categoryName);
+                  // print(currCategory.type);
+                  while(inCategory){
+                    stdout.write('$serverName >> $categoryName >> ');
+                    String? command = stdin.readLineSync();
+                    if(command == 'create channel'){
+                      await Channel.createChannel(categoryName, currServer, currCategory.type!, currentUser.username!);
+                    }
+
+                    else if(command == 'exit') inCategory = false;
+
+                    else if(command == 'enter channel'){
+                      stdout.write("Please provide the name of the channel you want to enter : ");
+                      bool inChannel = true;
+                      String? channelName = stdin.readLineSync();
+                      currCategory = await Category.update(currCategory, serverName);
+                      if(!currCategory.channels!.contains(channelName)){
+                        // print(currServer.categories);
+                        inChannel = false;
+                        print("such a channel does not exist");
+                      }  
+
+                      Channel currChannel = await Channel.getChannelObj(currCategory, serverName, channelName!);
+                      while(inChannel){
+                        stdout.write('$serverName >> $categoryName >> $channelName >> ');
+                        String? command = stdin.readLineSync();
+                        if(command == 'send message'){
+                          await currChannel.sendMessage(currCategory, currentUser.username!, currChannel.type!, currChannel, serverName);
+                        }
+                        else if(command == 'exit'){
+                          inChannel = false;
+                        }
+                        else if(command == 'print messages'){
+                          currChannel.printMessages();
+                        }
+                      }
+                    }
+                  }
+                }  
+              }
+
+              else if(command == 'print modUser'){
+                Server.printKinoe(currServer);
+              }
+              else{
+              print("a server with server name $serverName does not exist");
               }
             }
-            else{
-              print("a server with server name $serverName does not exist");
             }
           }
 
@@ -140,9 +187,29 @@ void main(List<String> arguments) async{
           }
         }
       }
+          
       else{
         print("Please login to user Server functionality");
       }
+    }
+
+
+    else if(arguments == 'sendDm'){
+      bool check = checkValidity.checkLogin(currentUser.username!);
+      if(!check){
+        print("Please login first");
+        return;
+      }
+      await dmMessage.sendMessage(currentUser.username!);
+    }
+
+    else if(arguments == 'showDm'){
+      bool check = checkValidity.checkLogin(currentUser.username!);
+      if(!check){
+        print("Please login first");
+        return;
+      }
+      await dmMessage.showDm(currentUser.username!);
     }
 
     else{

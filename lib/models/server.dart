@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:dartdiscord/constants/permission.dart';
 import 'package:dartdiscord/constants/roles.dart';
 import 'package:dartdiscord/models/check.dart';
+import 'package:dartdiscord/models/channel.dart';
 
 class Server{
   String? serverName;
@@ -81,6 +82,7 @@ class Server{
       'null' : channels,
     };
     String channelList = jsonEncode(catChannelMap);
+    Map<String,dynamic> categoryMap = newServer.categories!;
 
     var pathCat = 'lib/database/categories.db';
     databaseOp categoryDb = databaseOp(pathCat);
@@ -88,7 +90,10 @@ class Server{
     List<dynamic>? categoryRec = await categoryDb.storeDb
     (true);
     await categoryDb.insertDb(serverName, channelList);
-
+    for(var entry in categoryMap.entries){
+      // print(entry.key);
+      await Channel.defaultChannel(entry.key, newServer, entry.value, creator);
+    }
     print("Server created successfully!!");
   }
 
@@ -157,20 +162,20 @@ class Server{
         return;
       }
       if(role == null){
-        users[userName!] = perm!;
+        users[userName] = perm!;
       }
       else{
         Roles r = Roles();
         switch(role){
           case 'hashira' : 
-            users[userName!] = r.hashiraServer!;
+            users[userName] = r.hashiraServer!;
             // print(r.hashiraServer);
             break;
           case 'kinoe' :
-            users[userName!] = r.kinoeServer!;
+            users[userName] = r.kinoeServer!;
             break;
           case 'mizunoto' : 
-            users[userName!] = r.mizunotoServer!;
+            users[userName] = r.mizunotoServer!;
             break;
         } 
       }
@@ -181,10 +186,10 @@ class Server{
       print("Congratulations!! You have successfully added user $userName to the current server");
   }
 
-  static Future<bool> enterServer(String serverName, User userName) async{
+  static Future<bool> enterServer(String serverName, String userName) async{
     if(await checkValidity.checkServer(serverName)){
       if(checkValidity.checkLogin(userName)){
-        if(await checkValidity.checkServerUser(userName.username!, serverName)){
+        if(await checkValidity.checkServerUser(userName!, serverName)){
           return true;
         }
       } 
@@ -222,4 +227,16 @@ class Server{
     }
   }
 
+  static Future<void> printKinoe(Server server) async{
+    Roles r = Roles();
+    Map<String,dynamic> userMap = server.users!;
+    print("");
+    for(var entry in userMap.entries){
+      if((entry.value & r.kinoe != 0)|| (entry.value & r.hashira != 0)){
+        print(entry.key);
+      }
+      // print("// ${entry.key}");
+    }
+    print("");
+  }
 }

@@ -1,4 +1,4 @@
-import 'package:uuid/uuid.dart';
+import 'package:dartdiscord/models/dmMessage.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
 import 'dart:io';
@@ -7,11 +7,16 @@ import 'package:dartdiscord/database/database.dart';
 class User{
   String? username;
   String? passwordHash;
-  String? uuId;
+  List<dynamic>? messages;
 
-  User(this.username, String password){
-    uuId = Uuid().v1();
-    this.passwordHash = _hashPassword(password);
+  User.register(this.username, String password){
+    passwordHash = _hashPassword(password);
+    String defaultMessage = User.defaultMessage(username!);
+    messages = [defaultMessage];
+  }
+
+  User(this.username, String password, this.messages){
+    passwordHash = _hashPassword(password);
   }
 
   String toJson(){
@@ -19,16 +24,27 @@ class User{
     return jsonString;
   }
 
-  Map<String, String> toMap(){
+  Map<String, dynamic> toMap(){
     return {
       'username': username!,
       'passwordHash': passwordHash!,
+      'dmMessages' : jsonEncode(messages),
     };
   }
 
   Map<String, String> fromJson(String? jsonString){
     Map<String, String> map = jsonDecode(jsonString!);
     return map;
+  }
+
+  static String defaultMessage(String username){
+    Map<String, dynamic> map = {
+      'sender' : username,
+      'receiver' : username,
+      'message' : "here you can message yourself!!",
+    };
+    String json = jsonEncode(map);
+    return json;
   }
 
   //function for Register User
@@ -55,37 +71,37 @@ class User{
       print("The passwords do not match.");
       return;
     }
-    User newUser = User(username!, password!);
-    await userDb.insertDb(newUser.username, newUser.passwordHash);
+    User newUser = User.register(username!, password!);
+    await userDb.insertDb(newUser.username, newUser.toJson());
     print("User registered Successfully");
   }
     
   //function for login user
-  Future<bool> loginUser() async {
-      
+  static Future<bool> loginUser(String username, String password) async {
     var path = 'lib/database/users.db';
     databaseOp userDb = databaseOp(path);
 
     await userDb.openDb();
       
-    List<dynamic>? records = await userDb.storeDb(false);
-    String? pwdHash;
-    for (var rec in records!) {
-      if (rec.key == username) {
-        pwdHash = rec.value;
-        break;
-      }
-    }
-
-    if(pwdHash == ""){
-      print("Username does not exit!!");
+    List<dynamic>? records = await userDb.storeDb(true);
+    // print(records);
+    String? rec = await userDb.findDb(username);
+    // print(rec);
+    if(rec == ''){
+      print("username does NOT exist");
       return false;
     }
+    Map<String, dynamic> map = jsonDecode(rec!);
+    String? pwdHash = map['passwordHash'];
 
-    String? newHash = passwordHash;
+    if(pwdHash == ""){
+      print("Username does not exist!!");
+      return false;
+    }
+    var bytes = utf8.encode(password); 
+    var digest = sha256.convert(bytes); 
+    String? newHash = digest.toString();
     if(newHash == pwdHash){
-      User currentUser = User(username, newHash!);
-      currentUser.passwordHash = passwordHash;
       print("login successful $username");
       return true;
     }
@@ -97,5 +113,25 @@ class User{
     var bytes = utf8.encode(password); 
     var digest = sha256.convert(bytes); 
     return digest.toString();
+  }
+
+  Future<User> getUserObj(String userName, String password) async{
+    passwordHash = _hashPassword(password);
+
+    var path = 'lib/database/users.db';
+    databaseOp userDb = databaseOp(path);
+    await userDb.openDb();
+    List<dynamic>? records = await userDb.storeDb(true);
+    // print(records);
+    String? rec = await userDb.findDb(userName);
+    await userDb.closeDb();
+    // print(rec.runtimeType);
+    // print(rec);
+    
+    Map<String, dynamic> map = jsonDecode(rec!);
+    List<dynamic> message = jsonDecode(map['dmMessages']);
+    messages = message;
+    User currUser = User(userName, password, messages);
+    return currUser;
   }
 }

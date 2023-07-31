@@ -1,4 +1,4 @@
-import 'dart:convert';
+ import 'dart:convert';
 
 import 'package:dartdiscord/models/user.dart';
 import 'package:dartdiscord/database/database.dart';
@@ -6,8 +6,8 @@ import 'package:dartdiscord/database/database.dart';
 class checkValidity{
   bool check = false;
 
-  static bool checkLogin(User currentUser){
-    if(currentUser.username == ''){
+  static bool checkLogin(String currentUser){
+    if(currentUser == ''){
       return false;
     }
     return true;
